@@ -1,0 +1,6 @@
+{
+  "name": "Marketplace Pro",
+  "description": "Un sistema web marketplace completo para la gestión de compra y venta de productos, con roles de administrador, vendedor y comprador.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
