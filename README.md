@@ -10,3 +10,4 @@ npm install
 
 npm run dev
 
+## Cambios de Michelle en Vite.config.ts
