@@ -1,19 +1,48 @@
 <template>
-  <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-sm border mt-10">
-    <h2 className="text-2xl font-bold mb-6">Iniciar Sesión</h2>
-    <form @submit.prevent="handleLogin" className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-1">Correo</label>
-        <input v-model="email" type="email" className="w-full border rounded-lg px-4 py-2" required />
+  <div class="max-w-md mx-auto bg-white p-10 rounded-[32px] shadow-2xl shadow-neutral-100 border border-neutral-200 mt-20">
+    <h2 class="text-4xl font-black italic uppercase tracking-tighter mb-8 text-neutral-900">
+      {{ isRegister ? 'Crear Cuenta' : 'Ingresar' }}
+    </h2>
+    
+    <form @submit.prevent="isRegister ? handleRegister() : handleLogin()" class="space-y-6">
+      <div v-if="isRegister">
+        <label class="block text-[10px] font-mono uppercase tracking-widest text-neutral-400 mb-2">Nombre Completo</label>
+        <input v-model="name" type="text" class="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all font-medium" placeholder="Tu nombre" required />
       </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Contraseña</label>
-        <input v-model="password" type="password" className="w-full border rounded-lg px-4 py-2" required />
+
+      <div v-if="isRegister">
+        <label class="block text-[10px] font-mono uppercase tracking-widest text-neutral-400 mb-2">Teléfono</label>
+        <input v-model="phone" type="text" class="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all font-medium" placeholder="Ej: +51 999..." required />
       </div>
-      <button type="submit" className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition">
-        Entrar
+
+      <div>
+        <label class="block text-[10px] font-mono uppercase tracking-widest text-neutral-400 mb-2">Correo Electrónico</label>
+        <input v-model="email" type="email" class="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all font-medium" placeholder="correo@ejemplo.com" required />
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-mono uppercase tracking-widest text-neutral-400 mb-2">Contraseña</label>
+        <input v-model="password" type="password" class="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all font-medium" placeholder="••••••••" required />
+      </div>
+
+      <div v-if="isRegister">
+        <label class="block text-[10px] font-mono uppercase tracking-widest text-neutral-400 mb-2">Tipo de Usuario</label>
+        <select v-model="role" class="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all font-medium">
+          <option value="cliente">Soy Comprador</option>
+          <option value="vendedor">Soy Vendedor</option>
+        </select>
+      </div>
+
+      <button type="submit" class="w-full bg-neutral-900 text-white font-bold py-5 rounded-2xl hover:bg-blue-600 transition-all shadow-xl shadow-neutral-900/10 active:scale-95 uppercase tracking-widest text-xs">
+        {{ isRegister ? 'Registrarme' : 'Entrar' }}
       </button>
     </form>
+
+    <div class="mt-8 pt-8 border-t border-neutral-100 text-center">
+      <button @click="isRegister = !isRegister" class="text-xs font-bold text-neutral-400 hover:text-blue-600 transition-colors uppercase tracking-widest">
+        {{ isRegister ? '¿Ya tienes cuenta? Entra aquí' : '¿No tienes cuenta? Regístrate' }}
+      </button>
+    </div>
   </div>
 </template>
 
@@ -25,22 +54,43 @@ import { useAppStore } from '../store';
 
 const router = useRouter();
 const store = useAppStore();
+
+const isRegister = ref(false);
+const name = ref('');
+const phone = ref('');
 const email = ref('');
 const password = ref('');
+const role = ref('cliente');
 
 const handleLogin = async () => {
   try {
-    const response = await axios.post('/api/login', {
+    const response = await axios.post('/login', {
       email: email.value,
       password: password.value
     });
-    const { token } = response.data;
+    const { token, user } = response.data;
     localStorage.setItem('token', token);
-    store.setUser({ email: email.value });
+    store.setUser(user);
     alert('Ingreso exitoso');
     router.push('/');
   } catch (e: any) {
     alert('Error al entrar: ' + (e.response?.data?.error || e.message));
+  }
+};
+
+const handleRegister = async () => {
+  try {
+    await axios.post('/usuarios', {
+      nombre: name.value,
+      correo: email.value,
+      contrasena: password.value,
+      telefono: phone.value,
+      rol: role.value
+    });
+    alert('Usuario registrado con éxito. Ahora puedes entrar.');
+    isRegister.value = false;
+  } catch (e: any) {
+    alert('Error al registrar: ' + (e.response?.data?.error || e.message));
   }
 };
 </script>

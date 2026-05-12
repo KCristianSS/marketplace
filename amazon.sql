@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:33065
--- Tiempo de generación: 19-04-2026 a las 03:08:43
+-- Tiempo de generación: 12-05-2026 a las 05:11:22
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -64,56 +64,19 @@ CREATE TABLE `compras` (
 --
 
 INSERT INTO `compras` (`id`, `producto_id`, `comprador_id`, `vendedor_id`, `precio`, `estado`, `fecha_compra`) VALUES
-(1, 1, 1, 3, 299.99, 'completado', '2026-04-19 01:00:04'),
-(2, 3, 2, 4, 15.99, 'pendiente', '2026-04-19 01:00:04'),
-(3, 5, 2, 3, 450.00, 'completado', '2026-04-19 01:00:04'),
-(4, 6, 1, 4, 29.99, 'pendiente', '2026-04-19 01:00:04');
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `conversaciones`
---
-
-CREATE TABLE `conversaciones` (
-  `id` int(11) NOT NULL,
-  `producto_id` int(11) NOT NULL,
-  `comprador_id` int(11) NOT NULL,
-  `vendedor_id` int(11) NOT NULL,
-  `fecha_inicio` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Volcado de datos para la tabla `conversaciones`
---
-
-INSERT INTO `conversaciones` (`id`, `producto_id`, `comprador_id`, `vendedor_id`, `fecha_inicio`) VALUES
-(1, 1, 1, 3, '2026-04-19 01:00:04'),
-(2, 3, 2, 4, '2026-04-19 01:00:04'),
-(3, 5, 2, 3, '2026-04-19 01:00:04');
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `favoritos`
---
-
-CREATE TABLE `favoritos` (
-  `id` int(11) NOT NULL,
-  `usuario_id` int(11) NOT NULL,
-  `producto_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Volcado de datos para la tabla `favoritos`
---
-
-INSERT INTO `favoritos` (`id`, `usuario_id`, `producto_id`) VALUES
-(1, 1, 1),
-(2, 1, 3),
-(3, 2, 2),
-(4, 2, 5),
-(5, 3, 4);
+(1, 1, 3, 1, 599.00, 'pendiente', '2026-05-09 00:04:35'),
+(2, 2, 3, 1, 25.50, 'pendiente', '2026-05-09 00:04:35'),
+(3, 3, 3, 1, 89.90, 'pendiente', '2026-05-09 00:14:36'),
+(4, 3, 3, 1, 89.90, 'pendiente', '2026-05-09 00:14:36'),
+(5, 3, 4, 1, 89.90, 'pendiente', '2026-05-09 00:17:48'),
+(6, 1, 3, 1, 599.00, 'pendiente', '2026-05-09 00:32:25'),
+(7, 4, 3, 4, 10.00, 'pendiente', '2026-05-09 00:32:25'),
+(8, 1, 3, 1, 599.00, 'pendiente', '2026-05-09 01:17:41'),
+(9, 1, 3, 1, 599.00, 'pendiente', '2026-05-09 01:17:41'),
+(10, 2, 3, 1, 25.50, 'pendiente', '2026-05-09 01:17:41'),
+(11, 2, 3, 1, 25.50, 'pendiente', '2026-05-09 01:19:35'),
+(12, 2, 3, 1, 25.50, 'pendiente', '2026-05-09 01:19:35'),
+(13, 2, 3, 1, 25.50, 'pendiente', '2026-05-09 01:19:35');
 
 -- --------------------------------------------------------
 
@@ -126,47 +89,6 @@ CREATE TABLE `imagenes_producto` (
   `producto_id` int(11) NOT NULL,
   `url` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Volcado de datos para la tabla `imagenes_producto`
---
-
-INSERT INTO `imagenes_producto` (`id`, `producto_id`, `url`) VALUES
-(1, 1, 'https://ejemplo.com/img/smartphone1.jpg'),
-(2, 1, 'https://ejemplo.com/img/smartphone2.jpg'),
-(3, 2, 'https://ejemplo.com/img/auriculares1.jpg'),
-(4, 3, 'https://ejemplo.com/img/camiseta1.jpg'),
-(5, 4, 'https://ejemplo.com/img/sartenes1.jpg'),
-(6, 5, 'https://ejemplo.com/img/bici1.jpg'),
-(7, 6, 'https://ejemplo.com/img/libro_sql1.jpg');
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `mensajes`
---
-
-CREATE TABLE `mensajes` (
-  `id` int(11) NOT NULL,
-  `conversacion_id` int(11) NOT NULL,
-  `emisor_id` int(11) NOT NULL,
-  `contenido` text NOT NULL,
-  `fecha_envio` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Volcado de datos para la tabla `mensajes`
---
-
-INSERT INTO `mensajes` (`id`, `conversacion_id`, `emisor_id`, `contenido`, `fecha_envio`) VALUES
-(1, 1, 1, 'Hola, ¿el smartphone tiene garantía?', '2026-04-19 01:00:04'),
-(2, 1, 3, 'Sí, 2 años de garantía oficial.', '2026-04-19 01:00:04'),
-(3, 1, 1, 'Perfecto, ¿lo tienes disponible?', '2026-04-19 01:00:04'),
-(4, 1, 3, 'Sí, envío inmediato.', '2026-04-19 01:00:04'),
-(5, 2, 2, '¿La camiseta es de talla M?', '2026-04-19 01:00:04'),
-(6, 2, 4, 'Sí, exacta. Color azul marino.', '2026-04-19 01:00:04'),
-(7, 3, 2, '¿La bicicleta sigue disponible?', '2026-04-19 01:00:04'),
-(8, 3, 3, 'Lo siento, ya se vendió.', '2026-04-19 01:00:04');
 
 -- --------------------------------------------------------
 
@@ -183,6 +105,7 @@ CREATE TABLE `productos` (
   `categoria_id` int(11) NOT NULL,
   `estado` varchar(20) DEFAULT 'disponible',
   `ubicacion` varchar(150) DEFAULT NULL,
+  `img_url` text DEFAULT NULL,
   `fecha_publicacion` timestamp NOT NULL DEFAULT current_timestamp(),
   `fecha_actualizacion` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -191,13 +114,11 @@ CREATE TABLE `productos` (
 -- Volcado de datos para la tabla `productos`
 --
 
-INSERT INTO `productos` (`id`, `titulo`, `descripcion`, `precio`, `vendedor_id`, `categoria_id`, `estado`, `ubicacion`, `fecha_publicacion`, `fecha_actualizacion`) VALUES
-(1, 'Smartphone XYZ', 'Último modelo con 128GB y cámara 50MP', 299.99, 3, 1, 'disponible', 'Madrid', '2026-04-19 01:00:04', NULL),
-(2, 'Auriculares Bluetooth', 'Cancelación de ruido, 20h de batería', 49.99, 3, 1, 'disponible', 'Barcelona', '2026-04-19 01:00:04', NULL),
-(3, 'Camiseta Deportiva', '100% algodón, talla M', 15.99, 4, 2, 'disponible', 'Valencia', '2026-04-19 01:00:04', NULL),
-(4, 'Juego de Sartenes', 'Antiaderente, 3 piezas', 39.99, 4, 3, 'disponible', 'Sevilla', '2026-04-19 01:00:04', NULL),
-(5, 'Bicicleta Montaña', 'Ruedas 26\", cambios Shimano', 450.00, 3, 4, 'vendido', 'Bilbao', '2026-04-19 01:00:04', NULL),
-(6, 'Libro \"Aprender SQL\"', 'Guía práctica para principiantes', 29.99, 4, 5, 'disponible', 'Málaga', '2026-04-19 01:00:04', NULL);
+INSERT INTO `productos` (`id`, `titulo`, `descripcion`, `precio`, `vendedor_id`, `categoria_id`, `estado`, `ubicacion`, `img_url`, `fecha_publicacion`, `fecha_actualizacion`) VALUES
+(1, 'Smartphone Alpha G1', 'Potente procesador y cámara de 48MP.', 599.00, 1, 1, 'disponible', NULL, 'https://image.made-in-china.com/202f0j00OHReJTCKrZot/6-56-Inches-Cell-Phone-Android-12-Mobile-Phone-Uniwa-X19s-4G-Android-Global-Version-Smartphone.webp', '2026-05-08 23:58:34', '2026-05-09 00:08:49'),
+(2, 'Camiseta Pro Breath', 'Tela transpirable ideal para deportes intensos.', 25.50, 1, 2, 'disponible', NULL, 'https://fairplaybo.vtexassets.com/arquivos/ids/585182/779190-01.jpg?v=638797160337800000', '2026-05-08 23:58:34', '2026-05-09 00:13:39'),
+(3, 'Cafetera Express Home', 'Café perfecto en menos de 2 minutos.', 89.90, 1, 3, 'disponible', NULL, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbtr_q-iUUrHc_4Vqsq18NsYD_wh876be0WQ&s', '2026-05-08 23:58:34', '2026-05-09 00:14:17'),
+(4, 'Libro de fabulas', '12 cuentos', 10.50, 4, 5, 'disponible', 'Online', 'https://images.cdn2.buscalibre.com/fit-in/360x360/7e/b3/7eb3e5916d2fcd844888da213fe0ba40.jpg', '2026-05-09 00:30:48', '2026-05-09 01:22:09');
 
 -- --------------------------------------------------------
 
@@ -220,12 +141,11 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `nombre`, `correo`, `contrasena`, `telefono`, `rol`, `fecha_creacion`) VALUES
-(1, 'Carlos', 'carlos@email.com', '$2b$10$yX031XT2q2xAr1Mu1Q4u7ufvDxECO.T/UkvM8caIYM6ZXuHT9W0QW', '111222333', 'cliente', '2026-04-19 01:00:04'),
-(2, 'Ana Martínez', 'ana@email.com', '$2b$10$yX031XT2q2xAr1Mu1Q4u7ufvDxECO.T/UkvM8caIYM6ZXuHT9W0QW', '600333444', 'cliente', '2026-04-19 01:00:04'),
-(3, 'Juan Pérez', 'juan@email.com', '$2b$10$yX031XT2q2xAr1Mu1Q4u7ufvDxECO.T/UkvM8caIYM6ZXuHT9W0QW', '600555666', 'vendedor', '2026-04-19 01:00:04'),
-(4, 'María Gómez', 'maria@email.com', '$2b$10$yX031XT2q2xAr1Mu1Q4u7ufvDxECO.T/UkvM8caIYM6ZXuHT9W0QW', '600777888', 'vendedor', '2026-04-19 01:00:04'),
-(6, 'Guillermo Actualizado', 'nuevo@amazon.com', '$2b$10$0Dcms.RYhtLhICridMnfhuChiLUjKY2UyhQircqJVRFcw6bl/2Ghu', '111222333', 'cliente', '2026-04-19 01:00:52'),
-(7, 'Guillermo', 'admin@asdfasdf.com', '$2b$10$yX031XT2q2xAr1Mu1Q4u7ufvDxECO.T/UkvM8caIYM6ZXuHT9W0QW', '999888777', 'cliente', '2026-04-19 01:07:08');
+(1, 'Admin Marketplace', 'admin@ejemplo.com', 'admin123', '555-0101', 'vendedor', '2026-05-08 23:58:34'),
+(2, 'Juan Comprador', 'juan@ejemplo.com', 'juan123', '555-0102', 'cliente', '2026-05-08 23:58:34'),
+(3, 'Kevin Sancalli', 'kevin@ejemplo.com', '$2b$10$D44Su3JONcn3ChgQva807eUzm2XduapDpCwZUiNdgyE8uPSJYI9aO', '44997766', 'cliente', '2026-05-09 00:04:07'),
+(4, 'Marco Conde', 'marco@ejemplo.com', '$2b$10$tUxO7kcnu8ytPiBeGwSA4e80hs29EtsceFuaYw7.a.BI3S./His5m', '77996622', 'vendedor', '2026-05-09 00:15:43'),
+(5, 'Juan Perez', 'juan1@ejemplo.com', '$2b$10$OKT1uqF7WdWxwI6BCRTEAORGncPItSNX5kfvn/2wL/4ADErIsbKjO', '99445566', 'cliente', '2026-05-09 00:26:15');
 
 -- --------------------------------------------------------
 
@@ -266,26 +186,9 @@ ALTER TABLE `categorias`
 --
 ALTER TABLE `compras`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_compras_producto` (`producto_id`),
   ADD KEY `fk_compras_comprador` (`comprador_id`),
+  ADD KEY `fk_compras_producto` (`producto_id`),
   ADD KEY `fk_compras_vendedor` (`vendedor_id`);
-
---
--- Indices de la tabla `conversaciones`
---
-ALTER TABLE `conversaciones`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uk_conversacion_producto_comprador` (`producto_id`,`comprador_id`),
-  ADD KEY `fk_conversaciones_comprador` (`comprador_id`),
-  ADD KEY `fk_conversaciones_vendedor` (`vendedor_id`);
-
---
--- Indices de la tabla `favoritos`
---
-ALTER TABLE `favoritos`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uk_favorito_usuario_producto` (`usuario_id`,`producto_id`),
-  ADD KEY `fk_favoritos_producto` (`producto_id`);
 
 --
 -- Indices de la tabla `imagenes_producto`
@@ -293,14 +196,6 @@ ALTER TABLE `favoritos`
 ALTER TABLE `imagenes_producto`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_imagenes_producto` (`producto_id`);
-
---
--- Indices de la tabla `mensajes`
---
-ALTER TABLE `mensajes`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_mensajes_conversacion` (`conversacion_id`),
-  ADD KEY `fk_mensajes_emisor` (`emisor_id`);
 
 --
 -- Indices de la tabla `productos`
@@ -332,43 +227,25 @@ ALTER TABLE `categorias`
 -- AUTO_INCREMENT de la tabla `compras`
 --
 ALTER TABLE `compras`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
--- AUTO_INCREMENT de la tabla `conversaciones`
---
-ALTER TABLE `conversaciones`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT de la tabla `favoritos`
---
-ALTER TABLE `favoritos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de la tabla `imagenes_producto`
 --
 ALTER TABLE `imagenes_producto`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
-
---
--- AUTO_INCREMENT de la tabla `mensajes`
---
-ALTER TABLE `mensajes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Restricciones para tablas volcadas
@@ -383,32 +260,10 @@ ALTER TABLE `compras`
   ADD CONSTRAINT `fk_compras_vendedor` FOREIGN KEY (`vendedor_id`) REFERENCES `usuarios` (`id`);
 
 --
--- Filtros para la tabla `conversaciones`
---
-ALTER TABLE `conversaciones`
-  ADD CONSTRAINT `fk_conversaciones_comprador` FOREIGN KEY (`comprador_id`) REFERENCES `usuarios` (`id`),
-  ADD CONSTRAINT `fk_conversaciones_producto` FOREIGN KEY (`producto_id`) REFERENCES `productos` (`id`),
-  ADD CONSTRAINT `fk_conversaciones_vendedor` FOREIGN KEY (`vendedor_id`) REFERENCES `usuarios` (`id`);
-
---
--- Filtros para la tabla `favoritos`
---
-ALTER TABLE `favoritos`
-  ADD CONSTRAINT `fk_favoritos_producto` FOREIGN KEY (`producto_id`) REFERENCES `productos` (`id`),
-  ADD CONSTRAINT `fk_favoritos_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`);
-
---
 -- Filtros para la tabla `imagenes_producto`
 --
 ALTER TABLE `imagenes_producto`
   ADD CONSTRAINT `fk_imagenes_producto` FOREIGN KEY (`producto_id`) REFERENCES `productos` (`id`) ON DELETE CASCADE;
-
---
--- Filtros para la tabla `mensajes`
---
-ALTER TABLE `mensajes`
-  ADD CONSTRAINT `fk_mensajes_conversacion` FOREIGN KEY (`conversacion_id`) REFERENCES `conversaciones` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_mensajes_emisor` FOREIGN KEY (`emisor_id`) REFERENCES `usuarios` (`id`);
 
 --
 -- Filtros para la tabla `productos`
