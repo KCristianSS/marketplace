@@ -25,11 +25,11 @@ const repository = {
   // ... (se mantiene igual, se usará si hay conexión)
   usuarios: {
     getAll: async () => {
-      const [rows] = await pool.query("SELECT * FROM usuarios_publicos");
+      const [rows] = await pool.query("SELECT id, nombre, correo, telefono, rol FROM usuarios");
       return rows;
     },
     getById: async (id: number) => {
-      const [rows] = await pool.query("SELECT * FROM usuarios_publicos WHERE id = ?", [id]);
+      const [rows] = await pool.query("SELECT id, nombre, correo, telefono, rol FROM usuarios WHERE id = ?", [id]);
       return (rows as any[])[0] || null;
     },
     getByEmail: async (correo: string) => {
@@ -46,8 +46,8 @@ const repository = {
     },
     update: async (id: number, u: any) => {
       await pool.execute(
-        "UPDATE usuarios SET nombre = ?, correo = ?, telefono = ? WHERE id = ?",
-        [u.nombre || null, u.correo || null, u.telefono || null, id]
+        "UPDATE usuarios SET nombre = ?, correo = ?, telefono = ?, rol = ? WHERE id = ?",
+        [u.nombre || null, u.correo || null, u.telefono || null, u.rol || "cliente", id]
       );
     },
     delete: async (id: number) => {
@@ -80,7 +80,13 @@ const repository = {
       return rows;
     },
     getById: async (id: number) => {
-      const [rows] = await pool.query("SELECT * FROM productos WHERE id = ?", [id]);
+      const [rows] = await pool.query(`
+        SELECT p.*, u.nombre as vendedor_nombre, u.telefono as vendedor_telefono, c.nombre as categoria_nombre 
+        FROM productos p 
+        LEFT JOIN usuarios u ON p.vendedor_id = u.id 
+        LEFT JOIN categorias c ON p.categoria_id = c.id
+        WHERE p.id = ?
+      `, [id]);
       return (rows as any[])[0] || null;
     },
     create: async (p: any) => {
@@ -156,17 +162,45 @@ const repository = {
   },
   compras: {
     getAll: async () => {
-      const [rows] = await pool.query("SELECT * FROM compras");
+      const [rows] = await pool.query(`
+        SELECT c.fecha_compra as fecha, c.id, c.producto_id, c.comprador_id, c.vendedor_id, c.precio, c.estado,
+               p.titulo as producto_titulo, u_c.nombre as comprador_nombre, u_v.nombre as vendedor_nombre 
+        FROM compras c
+        JOIN productos p ON c.producto_id = p.id
+        JOIN usuarios u_c ON c.comprador_id = u_c.id
+        JOIN usuarios u_v ON c.vendedor_id = u_v.id
+        ORDER BY c.fecha_compra DESC
+      `);
       return rows;
     },
-    getByUsuario: async (uid: number) => {
-      const [rows] = await pool.query("SELECT * FROM compras WHERE comprador_id = ? OR vendedor_id = ?", [uid, uid]);
+    getByComprador: async (uid: number) => {
+      const [rows] = await pool.query(`
+        SELECT c.fecha_compra as fecha, c.id, c.producto_id, c.comprador_id, c.vendedor_id, c.precio, c.estado,
+               p.titulo as producto_titulo, u_v.nombre as counterparty_name
+        FROM compras c
+        JOIN productos p ON c.producto_id = p.id
+        JOIN usuarios u_v ON c.vendedor_id = u_v.id
+        WHERE c.comprador_id = ?
+        ORDER BY c.fecha_compra DESC
+      `, [uid]);
+      return rows;
+    },
+    getByVendedor: async (uid: number) => {
+      const [rows] = await pool.query(`
+        SELECT c.fecha_compra as fecha, c.id, c.producto_id, c.comprador_id, c.vendedor_id, c.precio, c.estado,
+               p.titulo as producto_titulo, u_c.nombre as counterparty_name
+        FROM compras c
+        JOIN productos p ON c.producto_id = p.id
+        JOIN usuarios u_c ON c.comprador_id = u_c.id
+        WHERE c.vendedor_id = ?
+        ORDER BY c.fecha_compra DESC
+      `, [uid]);
       return rows;
     },
     create: async (c: any) => {
       const [result]: any = await pool.execute(
-        "INSERT INTO compras (producto_id, comprador_id, vendedor_id, precio, estado) VALUES (?, ?, ?, ?, ?)",
-        [c.producto_id, c.comprador_id, c.vendedor_id, c.precio, c.estado || "pendiente"]
+        "INSERT INTO compras (producto_id, comprador_id, vendedor_id, precio, estado, fecha_compra) VALUES (?, ?, ?, ?, ?, ?)",
+        [c.producto_id, c.comprador_id, c.vendedor_id, c.precio, c.estado || "pendiente", new Date().toISOString()]
       );
       return result.insertId;
     },
@@ -347,8 +381,48 @@ const mockRepository = {
     }
   },
   compras: {
-    getAll: async () => mockData.compras,
-    getByUsuario: async (uid: number) => mockData.compras.filter((c: any) => c.comprador_id === uid || c.vendedor_id === uid),
+    getAll: async () => {
+      return mockData.compras.map((c: any) => {
+        const prod = mockData.productos.find((p: any) => p.id === c.producto_id);
+        const comp = mockData.usuarios.find((u: any) => u.id === c.comprador_id);
+        const vend = mockData.usuarios.find((u: any) => u.id === c.vendedor_id);
+        return {
+          ...c,
+          fecha: c.fecha_compra,
+          producto_titulo: prod?.titulo,
+          comprador_nombre: comp?.nombre,
+          vendedor_nombre: vend?.nombre
+        };
+      });
+    },
+    getByComprador: async (uid: number) => {
+      return mockData.compras
+        .filter((c: any) => c.comprador_id === uid)
+        .map((c: any) => {
+          const prod = mockData.productos.find((p: any) => p.id === c.producto_id);
+          const vend = mockData.usuarios.find((u: any) => u.id === c.vendedor_id);
+          return {
+            ...c,
+            fecha: c.fecha_compra,
+            producto_titulo: prod?.titulo,
+            counterparty_name: vend?.nombre
+          };
+        });
+    },
+    getByVendedor: async (uid: number) => {
+      return mockData.compras
+        .filter((c: any) => c.vendedor_id === uid)
+        .map((c: any) => {
+          const prod = mockData.productos.find((p: any) => p.id === c.producto_id);
+          const comp = mockData.usuarios.find((u: any) => u.id === c.comprador_id);
+          return {
+            ...c,
+            fecha: c.fecha_compra,
+            producto_titulo: prod?.titulo,
+            counterparty_name: comp?.nombre
+          };
+        });
+    },
     create: async (c: any) => {
       const id = Math.max(0, ...mockData.compras.map((x: any) => x.id)) + 1;
       mockData.compras.push({ ...c, id, fecha_compra: new Date().toISOString() });
@@ -437,7 +511,8 @@ const service = {
   },
   compras: {
     listar: () => activeRepository.compras?.getAll() || [],
-    listarPorUsuario: (uid: number) => activeRepository.compras?.getByUsuario(uid) || [],
+    obtenerPorComprador: (uid: number) => activeRepository.compras?.getByComprador(uid) || [],
+    obtenerPorVendedor: (uid: number) => activeRepository.compras?.getByVendedor(uid) || [],
     crear: (data: any) => activeRepository.compras?.create(data),
     actualizarEstado: (id: number, e: string) => activeRepository.compras?.updateEstado(id, e)
   },
@@ -455,6 +530,21 @@ function authRequired(req: express.Request, res: express.Response, next: express
     (req as any).user = jwt.verify(token, SECRET_KEY);
     next();
   } catch { res.status(401).json({ error: "Token inválido" }); }
+}
+
+async function adminRequired(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const user = (req as any).user;
+  if (!user || user.rol !== "admin") {
+    // Si el JWT no tiene el rol, lo buscamos en BD
+    const fullUser = await service.usuarios.obtener(user.id);
+    if (fullUser && fullUser.rol === "admin") {
+      next();
+    } else {
+      res.status(403).json({ error: "Acceso denegado: Se requiere administrador" });
+    }
+  } else {
+    next();
+  }
 }
 
 // --- CONFIGURACIÓN SWAGGER (3.10 DOCUMENTACIÓN) ---
@@ -534,7 +624,6 @@ async function startServer() {
    *       201:
    *         description: Creado
    */
-  apiRouter.get("/usuarios", async (req, res) => { try { res.json(await service.usuarios.listar()); } catch (e: any) { res.status(500).json({ error: e.message }); } });
   apiRouter.post("/usuarios", async (req, res) => { try { const id = await service.usuarios.registrar(req.body); res.status(201).json({ id }); } catch (e: any) { res.status(500).json({ error: e.message }); } });
 
   /**
@@ -575,8 +664,35 @@ async function startServer() {
    *         description: OK
    */
   apiRouter.get("/usuarios/:id", async (req, res) => { try { res.json(await service.usuarios.obtener(Number(req.params.id))); } catch (e: any) { res.status(500).json({ error: e.message }); } });
-  apiRouter.put("/usuarios/:id", authRequired, async (req, res) => { try { await service.usuarios.actualizar(Number(req.params.id), req.body); res.json({ message: "OK" }); } catch (e: any) { res.status(500).json({ error: e.message }); } });
-  apiRouter.delete("/usuarios/:id", authRequired, async (req, res) => { try { await service.usuarios.eliminar(Number(req.params.id)); res.json({ message: "OK" }); } catch (e: any) { res.status(500).json({ error: e.message }); } });
+  apiRouter.put("/usuarios/:id", authRequired, async (req, res) => { 
+    try { 
+      const currentUserId = (req as any).user.id;
+      const currentUserRole = (req as any).user.rol;
+      const targetUserId = Number(req.params.id);
+      
+      // Solo el mismo usuario o un admin pueden editar
+      if (currentUserId !== targetUserId && currentUserRole !== 'admin') {
+        return res.status(403).json({ error: "No tienes permiso para editar este perfil" });
+      }
+      
+      await service.usuarios.actualizar(targetUserId, req.body); 
+      res.json({ message: "OK" }); 
+    } catch (e: any) { 
+      res.status(500).json({ error: e.message }); 
+    } 
+  });
+  apiRouter.delete("/usuarios/:id", authRequired, async (req, res) => {
+    try {
+      const currentUserRole = (req as any).user.rol;
+      if (currentUserRole !== 'admin') {
+        return res.status(403).json({ error: "Acceso denegado: Se requiere administrador" });
+      }
+      await service.usuarios.eliminar(Number(req.params.id));
+      res.json({ message: "OK" });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
 
   // --- CATEGORIAS ---
   /**
@@ -717,6 +833,8 @@ async function startServer() {
   apiRouter.put("/productos/:id", authRequired, async (req, res) => { try { await service.productos.actualizar(Number(req.params.id), req.body); res.json({ message: "OK" }); } catch (e: any) { res.status(500).json({ error: e.message }); } });
   apiRouter.delete("/productos/:id", authRequired, async (req, res) => { try { await service.productos.eliminar(Number(req.params.id)); res.json({ message: "OK" }); } catch (e: any) { res.status(500).json({ error: e.message }); } });
 
+  apiRouter.get("/usuarios", authRequired, adminRequired, async (req, res) => { try { res.json(await service.usuarios.listar()); } catch (e: any) { res.status(500).json({ error: e.message }); } });
+
   // --- IMAGENES ---
   /**
    * @openapi
@@ -781,7 +899,20 @@ async function startServer() {
    *       201:
    *         description: OK
    */
-  apiRouter.get("/compras", authRequired, async (req, res) => { try { res.json(await service.compras.listar()); } catch (e: any) { res.status(500).json({ error: e.message }); } });
+  apiRouter.get("/compras", authRequired, async (req, res) => { 
+    try { 
+      const user = (req as any).user;
+      if (user.rol === 'admin') {
+        res.json(await service.compras.listar()); 
+      } else if (user.rol === 'vendedor') {
+        res.json(await service.compras.obtenerPorVendedor(user.id));
+      } else {
+        res.json(await service.compras.obtenerPorComprador(user.id));
+      }
+    } catch (e: any) { 
+      res.status(500).json({ error: e.message }); 
+    } 
+  });
   apiRouter.post("/compras", authRequired, async (req, res) => { try { const id = await service.compras.crear(req.body); res.status(201).json({ id }); } catch (e: any) { res.status(500).json({ error: e.message }); } });
 
   // --- MENSAJERÍA ---
@@ -905,7 +1036,7 @@ async function startServer() {
         // Permitimos también comparación directa para facilitar pruebas con XAMPP/SQL manual
         if (isMatch || password === user.contrasena) {
           console.log(`[LOGIN] Éxito para ${email}`);
-          const token = jwt.sign({ id: user.id }, SECRET_KEY, { expiresIn: '8h' });
+          const token = jwt.sign({ id: user.id, rol: user.rol }, SECRET_KEY, { expiresIn: '8h' });
           return res.json({ token, user: { id: user.id, nombre: user.nombre, rol: user.rol } });
         } else {
           console.log(`[LOGIN] Contraseña incorrecta para ${email}`);
