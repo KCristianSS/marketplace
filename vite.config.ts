@@ -8,7 +8,7 @@ export default defineConfig(({mode}) => {
   return {
     plugins: [vue(), tailwindcss()],
     define: {
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+      'process.env.marketplace': JSON.stringify(env.marketplace),
     },
     resolve: {
       alias: {
