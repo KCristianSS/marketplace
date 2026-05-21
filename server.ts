@@ -601,7 +601,8 @@ async function startServer() {
    * /api/usuarios:
    *   get:
    *     tags: [3.5.1 Módulo Usuarios]
-   *     summary: Listar todos los usuarios
+   *     summary: Listar todos los usuarios (Admin)
+   *     security: [{ bearerAuth: [] }]
    *     responses:
    *       200:
    *         description: OK
@@ -616,10 +617,10 @@ async function startServer() {
    *             type: object
    *             required: [nombre, correo, contrasena]
    *             properties:
-   *               nombre: { type: string, example: "Guillermo" }
-   *               correo: { type: string, example: "admin@amazon.com" }
-   *               contrasena: { type: string, example: "123456" }
-   *               telefono: { type: string, example: "999888777" }
+   *               nombre: { type: string, example: "Kevin Sancalli" }
+   *               correo: { type: string, example: "kevin@ejemplo.com" }
+   *               contrasena: { type: string, example: "pass123" }
+   *               telefono: { type: string, example: "44997766" }
    *     responses:
    *       201:
    *         description: Creado
@@ -724,38 +725,8 @@ async function startServer() {
   apiRouter.get("/categorias", async (req, res) => { try { res.json(await service.categorias.listar()); } catch (e: any) { res.status(500).json({ error: e.message }); } });
   apiRouter.post("/categorias", authRequired, async (req, res) => { try { const id = await service.categorias.crear(req.body.nombre); res.status(201).json({ id }); } catch (e: any) { res.status(500).json({ error: e.message }); } });
 
-  // --- FAVORITOS ---
-  /**
-   * @openapi
-   * /api/favoritos/{uid}:
-   *   get:
-   *     tags: [3.5.1 Módulo Usuarios]
-   *     summary: Listar favoritos de un usuario
-   *     parameters: [{ name: uid, in: path, required: true, schema: { type: integer } }]
-   *     responses:
-   *       200:
-   *         description: OK
-   * /api/favoritos:
-   *   post:
-   *     tags: [3.5.1 Módulo Usuarios]
-   *     summary: Marcar producto como favorito
-   *     security: [{ bearerAuth: [] }]
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required: [usuario_id, producto_id]
-   *             properties:
-   *               usuario_id: { type: integer, example: 1 }
-   *               producto_id: { type: integer, example: 5 }
-   *     responses:
-   *       201:
-   *         description: OK
-   */
-  apiRouter.get("/favoritos/:uid", async (req, res) => { try { res.json(await service.favoritos.listar(Number(req.params.uid))); } catch (e: any) { res.status(500).json({ error: e.message }); } });
-  apiRouter.post("/favoritos", authRequired, async (req, res) => { try { await service.favoritos.agregar(req.body.usuario_id, req.body.producto_id); res.json({ message: "OK" }); } catch (e: any) { res.status(500).json({ error: e.message }); } });
+
+
 
   // --- 3.5.2 MÓDULO DE TRANSACCIONES (PRODUCTOS) ---
   /**
@@ -835,38 +806,10 @@ async function startServer() {
 
   apiRouter.get("/usuarios", authRequired, adminRequired, async (req, res) => { try { res.json(await service.usuarios.listar()); } catch (e: any) { res.status(500).json({ error: e.message }); } });
 
-  // --- IMAGENES ---
-  /**
-   * @openapi
-   * /api/productos/{pid}/imagenes:
-   *   get:
-   *     tags: [Catálogos]
-   *     summary: Obtener imágenes de un producto
-   *     parameters: [{ name: pid, in: path, required: true, schema: { type: integer } }]
-   *     responses:
-   *       200:
-   *         description: OK
-   * /api/imagenes_producto:
-   *   post:
-   *     tags: [Catálogos]
-   *     summary: Añadir imagen a producto
-   *     security: [{ bearerAuth: [] }]
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required: [producto_id, url]
-   *             properties:
-   *               producto_id: { type: integer, example: 1 }
-   *               url: { type: string, example: "https://ejemplo.com/foto.jpg" }
-   *     responses:
-   *       201:
-   *         description: OK
-   */
-  apiRouter.get("/productos/:pid/imagenes", async (req, res) => { try { res.json(await service.imagenes.listar(Number(req.params.pid))); } catch (e: any) { res.status(500).json({ error: e.message }); } });
-  apiRouter.post("/imagenes_producto", authRequired, async (req, res) => { try { const id = await service.imagenes.agregar(req.body.producto_id, req.body.url); res.status(201).json({ id }); } catch (e: any) { res.status(500).json({ error: e.message }); } });
+  // Nota: Las imágenes de un producto se recuperan del campo img_url directamente.
+  // Mantenemos este endpoint de compatibilidad retornando un arreglo vacío sin acceder a tablas inexistentes.
+  apiRouter.get("/productos/:pid/imagenes", async (req, res) => { try { res.json([]); } catch (e: any) { res.status(500).json({ error: e.message }); } });
+
 
   // --- COMPRAS ---
   /**
@@ -874,7 +817,7 @@ async function startServer() {
    * /api/compras:
    *   get:
    *     tags: [3.5.2 Módulo Transacciones]
-   *     summary: Listar todas las compras (Admin)
+   *     summary: Listar compras o ventas (dependiendo del rol)
    *     security: [{ bearerAuth: [] }]
    *     responses:
    *       200:
@@ -915,74 +858,8 @@ async function startServer() {
   });
   apiRouter.post("/compras", authRequired, async (req, res) => { try { const id = await service.compras.crear(req.body); res.status(201).json({ id }); } catch (e: any) { res.status(500).json({ error: e.message }); } });
 
-  // --- MENSAJERÍA ---
-  /**
-   * @openapi
-   * /api/conversaciones/{uid}:
-   *   get:
-   *     tags: [Mensajería]
-   *     summary: Obtener conversaciones de un usuario
-   *     security: [{ bearerAuth: [] }]
-   *     parameters: [{ name: uid, in: path, required: true, schema: { type: integer } }]
-   *     responses:
-   *       200:
-   *         description: OK
-   * /api/conversaciones:
-   *   post:
-   *     tags: [Mensajería]
-   *     summary: Crear nueva conversación
-   *     security: [{ bearerAuth: [] }]
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required: [producto_id, comprador_id, vendedor_id]
-   *             properties:
-   *               producto_id: { type: integer }
-   *               comprador_id: { type: integer }
-   *               vendedor_id: { type: integer }
-   *     responses:
-   *       201:
-   *         description: OK
-   */
-  apiRouter.get("/conversaciones/:uid", authRequired, async (req, res) => { try { res.json(await service.conversaciones.listar(Number(req.params.uid))); } catch (e: any) { res.status(500).json({ error: e.message }); } });
-  apiRouter.post("/conversaciones", authRequired, async (req, res) => { try { const id = await service.conversaciones.crear(req.body); res.status(201).json({ id }); } catch (e: any) { res.status(500).json({ error: e.message }); } });
 
-  /**
-   * @openapi
-   * /api/mensajes/{cid}:
-   *   get:
-   *     tags: [Mensajería]
-   *     summary: Listar mensajes de una conversación
-   *     security: [{ bearerAuth: [] }]
-   *     parameters: [{ name: cid, in: path, required: true, schema: { type: integer } }]
-   *     responses:
-   *       200:
-   *         description: OK
-   * /api/mensajes:
-   *   post:
-   *     tags: [Mensajería]
-   *     summary: Enviar un mensaje
-   *     security: [{ bearerAuth: [] }]
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required: [conversacion_id, emisor_id, contenido]
-   *             properties:
-   *               conversacion_id: { type: integer, example: 1 }
-   *               emisor_id: { type: integer, example: 2 }
-   *               contenido: { type: string, example: "Hola, ¿sigue disponible?" }
-   *     responses:
-   *       201:
-   *         description: OK
-   */
-  apiRouter.get("/mensajes/:cid", authRequired, async (req, res) => { try { res.json(await service.mensajes.listar(Number(req.params.cid))); } catch (e: any) { res.status(500).json({ error: e.message }); } });
-  apiRouter.post("/mensajes", authRequired, async (req, res) => { try { const id = await service.mensajes.enviar(req.body); res.status(201).json({ id }); } catch (e: any) { res.status(500).json({ error: e.message }); } });
+
 
   // --- 3.5.3 MÓDULO DE REPORTES ---
   /**
@@ -1013,8 +890,8 @@ async function startServer() {
    *             type: object
    *             required: [email, password]
    *             properties:
-   *               email: { type: string, example: "admin@amazon.com" }
-   *               password: { type: string, example: "123456" }
+   *               email: { type: string, example: "rosa@ejemplo.com" }
+   *               password: { type: string, example: "pass123" }
    *     responses:
    *       200:
    *         description: Token generado
@@ -1052,6 +929,16 @@ async function startServer() {
   });
 
   // Diagnóstico
+  /**
+   * @openapi
+   * /api/ping:
+   *   get:
+   *     tags: [Diagnóstico]
+   *     summary: Verificar el estado del servidor (Ping)
+   *     responses:
+   *       200:
+   *         description: Respuesta exitosa del servidor indicando el estado y la hora actual.
+   */
   apiRouter.get("/ping", (req, res) => res.json({ status: "OK", server_time: new Date() }));
 
   // Frontend SPA fallback
