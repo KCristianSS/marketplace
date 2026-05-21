@@ -21,6 +21,22 @@
         </span>
       </div>
 
+      <!-- Availability Tag -->
+      <div class="absolute top-4 right-4">
+        <span 
+          v-if="product.estado === 'disponible'"
+          class="bg-green-600 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm"
+        >
+          Disponible
+        </span>
+        <span 
+          v-else
+          class="bg-red-600 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm"
+        >
+          No Disponible
+        </span>
+      </div>
+
       <!-- Quick Add Overlay (Optional, but looks nice) -->
       <div class="absolute inset-0 bg-neutral-900/0 group-hover:bg-neutral-900/5 transition-colors pointer-events-none"></div>
     </div>
@@ -33,18 +49,21 @@
       
       <p class="text-neutral-500 dark:text-neutral-400 text-xs mb-6 line-clamp-2 h-8 leading-relaxed italic">{{ product.descripcion }}</p>
       
-      <div class="mt-auto pt-4 border-t border-neutral-50 dark:border-neutral-800 flex items-center justify-between">
-        <div class="flex items-center gap-1 text-[9px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">
-            <span class="text-blue-500">📍</span> {{ product.ubicacion || 'Online' }}
+      <div class="mt-auto pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+        <div class="flex items-center gap-1.5 text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest leading-none">
+            <span class="text-blue-500 text-xs">👤</span> {{ product.vendedor_nombre || 'Vendedor' }}
         </div>
         
         <button 
           v-if="store.user?.rol !== 'vendedor' && store.user?.rol !== 'admin'"
-          @click.stop="$emit('add-to-cart', product)"
-          class="bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 w-10 h-10 rounded-full flex items-center justify-center hover:bg-blue-600 dark:hover:bg-blue-600 dark:hover:text-white hover:scale-110 active:scale-95 transition-all shadow-md"
-          title="Añadir al carrito"
+          :disabled="product.estado === 'no disponible'"
+          @click.stop="product.estado === 'no disponible' ? null : $emit('add-to-cart', product)"
+          class="w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-md"
+          :class="product.estado === 'no disponible' ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 cursor-not-allowed' : 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-blue-600 dark:hover:bg-blue-600 dark:hover:text-white hover:scale-110 active:scale-95 cursor-pointer'"
+          :title="product.estado === 'no disponible' ? 'Producto no disponible' : 'Añadir al carrito'"
         >
-          <Plus :size="18" stroke-width="3" />
+          <Plus v-if="product.estado !== 'no disponible'" :size="18" stroke-width="3" />
+          <span v-else class="text-xs font-bold leading-none select-none">&#128683;</span>
         </button>
       </div>
     </div>

@@ -15,7 +15,7 @@
     </div>
 
     <div v-else class="space-y-8">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-neutral-900 dark:bg-white p-8 rounded-[32px] text-white dark:text-neutral-900 border border-white/10 dark:border-neutral-200 shadow-xl">
            <span class="text-[10px] font-mono opacity-50 uppercase tracking-widest mb-2 block">Total Usuarios</span>
            <span class="text-5xl font-black italic tracking-tighter">{{ users.length }}</span>
@@ -27,10 +27,6 @@
         <div class="bg-white dark:bg-neutral-800 p-8 rounded-[32px] border border-neutral-200 dark:border-neutral-700 shadow-sm">
            <span class="text-[10px] font-mono text-neutral-400 uppercase tracking-widest mb-2 block">Clientes</span>
            <span class="text-5xl font-black italic tracking-tighter dark:text-white">{{ clientsCount }}</span>
-        </div>
-        <div class="bg-blue-600 p-8 rounded-[32px] border border-blue-500 shadow-xl text-white">
-           <span class="text-[10px] font-mono text-white/50 uppercase tracking-widest mb-2 block">Activos Hoy</span>
-           <span class="text-5xl font-black italic tracking-tighter">100%</span>
         </div>
       </div>
 

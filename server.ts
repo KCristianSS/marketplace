@@ -76,12 +76,18 @@ const repository = {
   },
   productos: {
     getAll: async () => {
-      const [rows] = await pool.query("SELECT * FROM productos");
+      const [rows] = await pool.query(`
+        SELECT p.*, u.nombre as vendedor_nombre, u.telefono as vendedor_telefono, c.nombre as categoria_nombre 
+        FROM productos p 
+        LEFT JOIN usuarios u ON p.vendedor_id = u.id 
+        LEFT JOIN categorias c ON p.categoria_id = c.id
+        ORDER BY p.id DESC
+      `);
       return rows;
     },
     getById: async (id: number) => {
       const [rows] = await pool.query(`
-        SELECT p.*, u.nombre as vendedor_nombre, u.telefono as vendedor_telefono, c.nombre as categoria_nombre 
+        SELECT p.*, u.nombre as vendedor_nombre, u.telefono as vendedor_telefono, u.fecha_creacion as vendedor_fecha_creacion, c.nombre as categoria_nombre 
         FROM productos p 
         LEFT JOIN usuarios u ON p.vendedor_id = u.id 
         LEFT JOIN categorias c ON p.categoria_id = c.id
@@ -199,8 +205,8 @@ const repository = {
     },
     create: async (c: any) => {
       const [result]: any = await pool.execute(
-        "INSERT INTO compras (producto_id, comprador_id, vendedor_id, precio, estado, fecha_compra) VALUES (?, ?, ?, ?, ?, ?)",
-        [c.producto_id, c.comprador_id, c.vendedor_id, c.precio, c.estado || "pendiente", new Date().toISOString()]
+        "INSERT INTO compras (producto_id, comprador_id, vendedor_id, precio, estado) VALUES (?, ?, ?, ?, ?)",
+        [c.producto_id, c.comprador_id, c.vendedor_id, c.precio, c.estado || "pendiente"]
       );
       return result.insertId;
     },
@@ -278,12 +284,12 @@ const mockData: any = {
 async function initMockData() {
   const hash = await bcrypt.hash("pass123", 10);
   mockData.usuarios = [
-    { id: 1, nombre: "Carlos", correo: "carlos@email.com", contrasena: hash, telefono: "111222333", rol: "cliente" },
-    { id: 2, nombre: "Ana Martínez", correo: "ana@email.com", contrasena: hash, telefono: "600333444", rol: "cliente" },
-    { id: 3, nombre: "Juan Pérez", correo: "juan@email.com", contrasena: hash, telefono: "600555666", rol: "vendedor" },
-    { id: 4, nombre: "María Gómez", correo: "maria@email.com", contrasena: hash, telefono: "600777888", rol: "vendedor" },
-    { id: 6, nombre: "Guillermo Actualizado", correo: "nuevo@amazon.com", contrasena: hash, telefono: "111222333", rol: "cliente" },
-    { id: 7, nombre: "Guillermo", correo: "admin@asdfasdf.com", contrasena: hash, telefono: "999888777", rol: "cliente" }
+    { id: 1, nombre: "Carlos", correo: "carlos@email.com", contrasena: hash, telefono: "111222333", rol: "cliente", fecha_creacion: "2024-01-12 10:20:00" },
+    { id: 2, nombre: "Ana Martínez", correo: "ana@email.com", contrasena: hash, telefono: "600333444", rol: "cliente", fecha_creacion: "2024-03-22 14:15:00" },
+    { id: 3, nombre: "Juan Pérez", correo: "juan@email.com", contrasena: hash, telefono: "600555666", rol: "vendedor", fecha_creacion: "2023-11-05 09:00:00" },
+    { id: 4, nombre: "María Gómez", correo: "maria@email.com", contrasena: hash, telefono: "600777888", rol: "vendedor", fecha_creacion: "2024-05-01 16:45:00" },
+    { id: 6, nombre: "Guillermo Actualizado", correo: "nuevo@amazon.com", contrasena: hash, telefono: "111222333", rol: "cliente", fecha_creacion: "2026-02-18 11:30:00" },
+    { id: 7, nombre: "Guillermo", correo: "admin@asdfasdf.com", contrasena: hash, telefono: "999888777", rol: "cliente", fecha_creacion: "2026-04-19 01:00:04" }
   ];
 }
 
@@ -322,8 +328,32 @@ const mockRepository = {
     }
   },
   productos: {
-    getAll: async () => mockData.productos,
-    getById: async (id: number) => mockData.productos.find((p: any) => p.id === id) || null,
+    getAll: async () => {
+      return mockData.productos.map((p: any) => {
+        const u = mockData.usuarios.find((x: any) => x.id === p.vendedor_id);
+        const c = mockData.categorias.find((x: any) => x.id === p.categoria_id);
+        return {
+          ...p,
+          vendedor_nombre: u ? u.nombre : "Vendedor Anónimo",
+          vendedor_telefono: u ? u.telefono : "No disponible",
+          vendedor_fecha_creacion: u ? u.fecha_creacion || "2026-04-18 01:00:04" : "2026-04-18 01:00:04",
+          categoria_nombre: c ? c.nombre : null
+        };
+      });
+    },
+    getById: async (id: number) => {
+      const p = mockData.productos.find((x: any) => x.id === id);
+      if (!p) return null;
+      const u = mockData.usuarios.find((x: any) => x.id === p.vendedor_id);
+      const c = mockData.categorias.find((x: any) => x.id === p.categoria_id);
+      return {
+        ...p,
+        vendedor_nombre: u ? u.nombre : "Vendedor Anónimo",
+        vendedor_telefono: u ? u.telefono : "No disponible",
+        vendedor_fecha_creacion: u ? u.fecha_creacion || "2026-04-18 01:00:04" : "2026-04-18 01:00:04",
+        categoria_nombre: c ? c.nombre : null
+      };
+    },
     create: async (p: any) => {
       const id = Math.max(0, ...mockData.productos.map((x: any) => x.id)) + 1;
       mockData.productos.push({ ...p, id });
@@ -486,8 +516,34 @@ const service = {
   productos: {
     listar: () => activeRepository.productos.getAll(),
     obtener: (id: number) => activeRepository.productos.getById(id),
-    crear: (data: any) => activeRepository.productos.create(data),
-    actualizar: (id: number, data: any) => activeRepository.productos.update(id, data),
+    crear: async (data: any) => {
+      const { imagenes, ...prodData } = data;
+      const id = await activeRepository.productos.create(prodData);
+      if (imagenes && Array.isArray(imagenes)) {
+        for (const url of imagenes) {
+          if (url && url.trim()) {
+            await activeRepository.imagenes_producto.add(id, url.trim());
+          }
+        }
+      }
+      return id;
+    },
+    actualizar: async (id: number, data: any) => {
+      const { imagenes, ...prodData } = data;
+      await activeRepository.productos.update(id, prodData);
+      if (imagenes && Array.isArray(imagenes)) {
+        if (activeRepository === repository) {
+          await pool.execute("DELETE FROM imagenes_producto WHERE producto_id = ?", [id]);
+        } else {
+          mockData.imagenes_producto = mockData.imagenes_producto.filter((img: any) => img.producto_id !== id);
+        }
+        for (const url of imagenes) {
+          if (url && url.trim()) {
+            await activeRepository.imagenes_producto.add(id, url.trim());
+          }
+        }
+      }
+    },
     eliminar: (id: number) => activeRepository.productos.delete(id)
   },
   imagenes: {
@@ -617,10 +673,10 @@ async function startServer() {
    *             type: object
    *             required: [nombre, correo, contrasena]
    *             properties:
-   *               nombre: { type: string, example: "Kevin Sancalli" }
-   *               correo: { type: string, example: "kevin@ejemplo.com" }
-   *               contrasena: { type: string, example: "pass123" }
-   *               telefono: { type: string, example: "44997766" }
+   *               nombre: { type: string, example: "Guillermo" }
+   *               correo: { type: string, example: "admin@amazon.com" }
+   *               contrasena: { type: string, example: "123456" }
+   *               telefono: { type: string, example: "999888777" }
    *     responses:
    *       201:
    *         description: Creado
@@ -806,9 +862,8 @@ async function startServer() {
 
   apiRouter.get("/usuarios", authRequired, adminRequired, async (req, res) => { try { res.json(await service.usuarios.listar()); } catch (e: any) { res.status(500).json({ error: e.message }); } });
 
-  // Nota: Las imágenes de un producto se recuperan del campo img_url directamente.
-  // Mantenemos este endpoint de compatibilidad retornando un arreglo vacío sin acceder a tablas inexistentes.
-  apiRouter.get("/productos/:pid/imagenes", async (req, res) => { try { res.json([]); } catch (e: any) { res.status(500).json({ error: e.message }); } });
+  // Nota: Las imágenes de un producto se recuperan de la tabla imagenes_producto.
+  apiRouter.get("/productos/:pid/imagenes", async (req, res) => { try { res.json(await service.imagenes.listar(Number(req.params.pid))); } catch (e: any) { res.status(500).json({ error: e.message }); } });
 
 
   // --- COMPRAS ---
@@ -857,6 +912,16 @@ async function startServer() {
     } 
   });
   apiRouter.post("/compras", authRequired, async (req, res) => { try { const id = await service.compras.crear(req.body); res.status(201).json({ id }); } catch (e: any) { res.status(500).json({ error: e.message }); } });
+  apiRouter.put("/compras/:id/estado", authRequired, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const { estado } = req.body;
+      await service.compras.actualizarEstado(id, estado);
+      res.json({ message: "OK" });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
 
 
 
@@ -890,8 +955,8 @@ async function startServer() {
    *             type: object
    *             required: [email, password]
    *             properties:
-   *               email: { type: string, example: "rosa@ejemplo.com" }
-   *               password: { type: string, example: "pass123" }
+   *               email: { type: string, example: "admin@amazon.com" }
+   *               password: { type: string, example: "123456" }
    *     responses:
    *       200:
    *         description: Token generado

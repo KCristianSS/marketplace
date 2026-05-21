@@ -21,6 +21,7 @@
             <th class="px-8 py-5 text-[10px] font-mono uppercase tracking-widest text-neutral-400">Precio</th>
             <th class="px-8 py-5 text-[10px] font-mono uppercase tracking-widest text-neutral-400">Estado</th>
             <th class="px-8 py-5 text-[10px] font-mono uppercase tracking-widest text-neutral-400">Fecha</th>
+            <th v-if="store.user?.rol !== 'admin'" class="px-8 py-5 text-[10px] font-mono uppercase tracking-widest text-neutral-400 text-right">Acciones</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-neutral-100 dark:divide-neutral-700">
@@ -50,7 +51,40 @@
               </span>
             </td>
             <td class="px-8 py-6 text-sm text-neutral-400">
-              {{ formatDate(item.fecha) }}
+              {{ formatDate(item.fecha_compra || item.fecha) }}
+            </td>
+            <td v-if="store.user?.rol !== 'admin'" class="px-8 py-6 text-right">
+              <!-- Acciones del Vendedor -->
+              <template v-if="isSeller">
+                <button 
+                  v-if="item.estado !== 'entregado' && item.estado !== 'completado'"
+                  @click="updateStatus(item.id, 'entregado')"
+                  class="text-[10px] font-black uppercase tracking-widest text-green-600 bg-green-50 dark:bg-green-900/30 px-3 py-1.5 rounded-xl hover:bg-green-600 hover:text-white transition-all transform hover:scale-105 active:scale-95"
+                >
+                  Marcar Entregado
+                </button>
+                <span v-else class="text-xs text-neutral-400 dark:text-neutral-500 italic">Entregado</span>
+              </template>
+
+              <!-- Acciones del Comprador -->
+              <template v-else>
+                <div v-if="item.estado !== 'completado'" class="flex justify-end gap-2">
+                  <button 
+                    @click="updateStatus(item.id, 'completado')"
+                    class="text-[10px] font-black uppercase tracking-widest text-green-600 bg-green-50 dark:bg-green-900/30 px-3 py-1.5 rounded-xl hover:bg-green-600 hover:text-white transition-all transform hover:scale-105 active:scale-95 animate-fade-in"
+                  >
+                    Confirmar Recibido
+                  </button>
+                  <button 
+                    v-if="item.estado !== 'pendiente' && item.estado !== 'no entregado'"
+                    @click="updateStatus(item.id, 'no entregado')"
+                    class="text-[10px] font-black uppercase tracking-widest text-red-500 bg-red-50 dark:bg-red-900/30 px-3 py-1.5 rounded-xl hover:bg-red-500 hover:text-white transition-all transform hover:scale-105 active:scale-95"
+                  >
+                    No Recibido
+                  </button>
+                </div>
+                <span v-else class="text-xs text-green-600 font-bold">✔️ Recibido</span>
+              </template>
             </td>
           </tr>
         </tbody>
@@ -92,22 +126,39 @@ const formatDate = (dateStr: string) => {
 };
 
 const statusClass = (status: string) => {
+  if (!status) return 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400';
   switch (status.toLowerCase()) {
-    case 'completado': return 'bg-green-100 text-green-600';
-    case 'pendiente': return 'bg-amber-100 text-amber-600';
-    default: return 'bg-neutral-100 text-neutral-600';
+    case 'completado': return 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400';
+    case 'entregado': return 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400';
+    case 'pendiente': return 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400';
+    case 'no entregado': return 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400';
+    default: return 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400';
+  }
+};
+
+const updateStatus = async (id: number, estado: string) => {
+  try {
+    await axios.put(`/compras/${id}/estado`, { estado });
+    alert(`Estado actualizado a "${estado}" correctamente.`);
+    await fetchHistory();
+  } catch (e: any) {
+    console.error("Error al actualizar estado:", e);
+    alert("Error al actualizar estado: " + (e.response?.data?.error || e.message));
+  }
+};
+
+const fetchHistory = async () => {
+  try {
+    const res = await axios.get(`/compras`);
+    items.value = res.data;
+  } catch (e) {
+    console.error("Error al cargar historial:", e);
   }
 };
 
 onMounted(async () => {
   try {
-    const res = await axios.get(`/compras`);
-    // En el backend actual, el endpoint devuelve todo lo relacionado al usuario si se filtra
-    // pero para seguridad y claridad, filtramos aquí lo que el usuario debe ver.
-    // Asumimos que los datos del counterparty vendrán del backend o los buscaremos.
-    items.value = res.data;
-  } catch (e) {
-    console.error("Error al cargar historial:", e);
+    await fetchHistory();
   } finally {
     loading.value = false;
   }
