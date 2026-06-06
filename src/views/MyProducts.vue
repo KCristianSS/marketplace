@@ -49,11 +49,8 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="block text-[10px] font-mono uppercase tracking-widest text-neutral-400 dark:text-neutral-500 mb-2">Estado</label>
-            <select v-model="newProduct.estado" class="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl px-5 py-4 text-sm focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all dark:text-white">
-              <option value="disponible">disponible</option>
-              <option value="no disponible">no disponible</option>
-            </select>
+            <label class="block text-[10px] font-mono uppercase tracking-widest text-neutral-400 dark:text-neutral-500 mb-2">Cantidad de Stock</label>
+            <input v-model.number="newProduct.cantidad" type="number" min="0" max="100000" class="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl px-5 py-4 text-sm focus:ring-4 focus:ring-blue-600/10 focus:border-blue-600 transition-all dark:text-white" required />
           </div>
           <div>
             <label class="block text-[10px] font-mono uppercase tracking-widest text-neutral-400 dark:text-neutral-500 mb-2">URL de la Imagen Principal</label>
@@ -93,7 +90,8 @@
           <div>
             <h3 class="font-bold text-neutral-900 dark:text-white uppercase tracking-tighter text-xl leading-none mb-1.5 break-all">{{ product.titulo }}</h3>
             <div class="flex flex-wrap gap-1.5 mt-1.5">
-              <span class="text-[9px] font-black bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-full uppercase tracking-widest">{{ product.estado }}</span>
+              <span v-if="product.cantidad > 0" class="text-[9px] font-black bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-2 py-1 rounded-full uppercase tracking-widest">Stock: {{ product.cantidad }}</span>
+              <span v-else class="text-[9px] font-black bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2 py-1 rounded-full uppercase tracking-widest">No Disponible / Agotado</span>
               <span v-if="product.ubicacion" class="text-[9px] font-black bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 px-2 py-1 rounded-full uppercase tracking-widest">📍 {{ product.ubicacion }}</span>
             </div>
           </div>
@@ -134,7 +132,7 @@ const newProduct = ref({
   precio: 0,
   categoria_id: 1,
   img_url: '',
-  estado: 'disponible',
+  cantidad: 1,
   ubicacion: 'Online',
   imagenes: [] as string[]
 });
@@ -163,7 +161,7 @@ const resetForm = () => {
     precio: 0, 
     categoria_id: 1, 
     img_url: '', 
-    estado: 'disponible', 
+    cantidad: 1, 
     ubicacion: 'Online',
     imagenes: []
   };
@@ -198,7 +196,7 @@ const editProduct = async (product: any) => {
     precio: product.precio,
     categoria_id: product.categoria_id,
     img_url: product.img_url || '',
-    estado: product.estado || 'disponible',
+    cantidad: product.cantidad !== undefined ? product.cantidad : 1,
     ubicacion: product.ubicacion || 'Online',
     imagenes: loadedImgs
   };
@@ -221,6 +219,50 @@ const deleteProduct = async (id: number) => {
 };
 
 const saveProduct = async () => {
+  // Validaciones frontend robustas (evita precio absurdo y limites excesivos)
+  if (!newProduct.value.titulo || newProduct.value.titulo.trim() === '') {
+    alert("El título del anuncio es obligatorio.");
+    return;
+  }
+  if (newProduct.value.titulo.length > 150) {
+    alert("El título no puede superar los 150 caracteres.");
+    return;
+  }
+  if (newProduct.value.precio === undefined || newProduct.value.precio === null || isNaN(Number(newProduct.value.precio))) {
+    alert("El precio es obligatorio.");
+    return;
+  }
+  const priceVal = Number(newProduct.value.precio);
+  if (priceVal <= 0) {
+    alert("El precio debe ser un número positivo mayor que cero.");
+    return;
+  }
+  if (priceVal > 99999.00) {
+    alert("El precio ingresado supera el límite permitido de $99,999.00.");
+    return;
+  }
+  if (newProduct.value.cantidad === undefined || newProduct.value.cantidad === null || isNaN(Number(newProduct.value.cantidad))) {
+    alert("La cantidad es obligatoria.");
+    return;
+  }
+  const qtyVal = Number(newProduct.value.cantidad);
+  if (qtyVal < 0 || !Number.isInteger(qtyVal)) {
+    alert("La cantidad debe ser un número entero mayor o igual a 0.");
+    return;
+  }
+  if (qtyVal > 100000) {
+    alert("La cantidad ingresada supera el stock límite permitido de 100,000 unidades.");
+    return;
+  }
+  if (newProduct.value.descripcion && newProduct.value.descripcion.length > 1000) {
+    alert("La descripción no puede superar los 1000 caracteres.");
+    return;
+  }
+  if (newProduct.value.ubicacion && newProduct.value.ubicacion.length > 150) {
+    alert("La ubicación no puede superar los 150 caracteres.");
+    return;
+  }
+
   try {
     console.log("Guardando producto. Editando:", isEditing.value);
     if (isEditing.value && editingId.value) {

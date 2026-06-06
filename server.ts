@@ -97,15 +97,15 @@ const repository = {
     },
     create: async (p: any) => {
       const [result]: any = await pool.execute(
-        "INSERT INTO productos (titulo, descripcion, precio, vendedor_id, categoria_id, estado, ubicacion, img_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        [p.titulo, p.descripcion || null, p.precio, p.vendedor_id, p.categoria_id, p.estado || "disponible", p.ubicacion || null, p.img_url || null]
+        "INSERT INTO productos (titulo, descripcion, precio, vendedor_id, categoria_id, cantidad, ubicacion, img_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        [p.titulo, p.descripcion || null, p.precio, p.vendedor_id, p.categoria_id, p.cantidad !== undefined ? p.cantidad : 1, p.ubicacion || null, p.img_url || null]
       );
       return result.insertId;
     },
     update: async (id: number, p: any) => {
       await pool.execute(
-        "UPDATE productos SET titulo = ?, descripcion = ?, precio = ?, vendedor_id = ?, categoria_id = ?, estado = ?, ubicacion = ?, img_url = ? WHERE id = ?",
-        [p.titulo, p.descripcion || null, p.precio, p.vendedor_id, p.categoria_id, p.estado || "disponible", p.ubicacion || null, p.img_url || null, id]
+        "UPDATE productos SET titulo = ?, descripcion = ?, precio = ?, vendedor_id = ?, categoria_id = ?, cantidad = ?, ubicacion = ?, img_url = ? WHERE id = ?",
+        [p.titulo, p.descripcion || null, p.precio, p.vendedor_id, p.categoria_id, p.cantidad !== undefined ? p.cantidad : 1, p.ubicacion || null, p.img_url || null, id]
       );
     },
     delete: async (id: number) => {
@@ -239,12 +239,12 @@ const mockData: any = {
     { id: 5, nombre: "Libros" }
   ],
   productos: [
-    { id: 1, titulo: "Smartphone XYZ", descripcion: "Último modelo con 128GB y cámara 50MP", precio: 299.99, vendedor_id: 3, categoria_id: 1, estado: "disponible", ubicacion: "Madrid", img_url: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=300&auto=format" },
-    { id: 2, titulo: "Auriculares Bluetooth", descripcion: "Cancelación de ruido, 20h de batería", precio: 49.99, vendedor_id: 3, categoria_id: 1, estado: "disponible", ubicacion: "Barcelona", img_url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=300&auto=format" },
-    { id: 3, titulo: "Camiseta Deportiva", descripcion: "100% algodón, talla M", precio: 15.99, vendedor_id: 4, categoria_id: 2, estado: "disponible", ubicacion: "Valencia", img_url: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=300&auto=format" },
-    { id: 4, titulo: "Juego de Sartenes", descripcion: "Antiaderente, 3 piezas", precio: 39.99, vendedor_id: 4, categoria_id: 3, estado: "disponible", ubicacion: "Sevilla", img_url: "https://images.unsplash.com/photo-1584947803216-233f5dfde539?q=80&w=300&auto=format" },
-    { id: 5, titulo: "Bicicleta Montaña", descripcion: "Ruedas 26\", cambios Shimano", precio: 450.00, vendedor_id: 3, categoria_id: 4, estado: "vendido", ubicacion: "Bilbao", img_url: "https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=300&auto=format" },
-    { id: 6, titulo: "Libro \"Aprender SQL\"", descripcion: "Guía práctica para principiantes", precio: 29.99, vendedor_id: 4, categoria_id: 5, estado: "disponible", ubicacion: "Málaga", img_url: "https://images.unsplash.com/photo-1544383335-dee000676442?q=80&w=300&auto=format" }
+    { id: 1, titulo: "Smartphone XYZ", descripcion: "Último modelo con 128GB y cámara 50MP", precio: 299.99, vendedor_id: 3, categoria_id: 1, cantidad: 10, ubicacion: "Madrid", img_url: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=300&auto=format" },
+    { id: 2, titulo: "Auriculares Bluetooth", descripcion: "Cancelación de ruido, 20h de batería", precio: 49.99, vendedor_id: 3, categoria_id: 1, cantidad: 5, ubicacion: "Barcelona", img_url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=300&auto=format" },
+    { id: 3, titulo: "Camiseta Deportiva", descripcion: "100% algodón, talla M", precio: 15.99, vendedor_id: 4, categoria_id: 2, cantidad: 15, ubicacion: "Valencia", img_url: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=300&auto=format" },
+    { id: 4, titulo: "Juego de Sartenes", descripcion: "Antiaderente, 3 piezas", precio: 39.99, vendedor_id: 4, categoria_id: 3, cantidad: 1, ubicacion: "Sevilla", img_url: "https://images.unsplash.com/photo-1584947803216-233f5dfde539?q=80&w=300&auto=format" },
+    { id: 5, titulo: "Bicicleta Montaña", descripcion: "Ruedas 26\", cambios Shimano", precio: 450.00, vendedor_id: 3, categoria_id: 4, cantidad: 0, ubicacion: "Bilbao", img_url: "https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=300&auto=format" },
+    { id: 6, titulo: "Libro \"Aprender SQL\"", descripcion: "Guía práctica para principiantes", precio: 29.99, vendedor_id: 4, categoria_id: 5, cantidad: 8, ubicacion: "Málaga", img_url: "https://images.unsplash.com/photo-1544383335-dee000676442?q=80&w=300&auto=format" }
   ],
   imagenes_producto: [
     { id: 1, producto_id: 1, url: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=300&auto=format" },
@@ -569,7 +569,30 @@ const service = {
     listar: () => activeRepository.compras?.getAll() || [],
     obtenerPorComprador: (uid: number) => activeRepository.compras?.getByComprador(uid) || [],
     obtenerPorVendedor: (uid: number) => activeRepository.compras?.getByVendedor(uid) || [],
-    crear: (data: any) => activeRepository.compras?.create(data),
+    crear: async (data: any) => {
+      const product = await service.productos.obtener(Number(data.producto_id));
+      if (!product) {
+        throw new Error("Producto no encontrado");
+      }
+      
+      const stock = product.cantidad !== undefined ? Number(product.cantidad) : 0;
+      if (stock <= 0) {
+        throw new Error(`El producto "${product.titulo}" se encuentra agotado (sin stock disponible).`);
+      }
+
+      const insertId = await activeRepository.compras?.create(data);
+
+      if (activeRepository === repository) {
+        await pool.execute("UPDATE productos SET cantidad = cantidad - 1 WHERE id = ? AND cantidad > 0", [data.producto_id]);
+      } else {
+        const mockProd = mockData.productos.find((p: any) => p.id === Number(data.producto_id));
+        if (mockProd) {
+          mockProd.cantidad = Math.max(0, Number(mockProd.cantidad) - 1);
+        }
+      }
+
+      return insertId;
+    },
     actualizarEstado: (id: number, e: string) => activeRepository.compras?.updateEstado(id, e)
   },
   reportes: {
@@ -816,8 +839,55 @@ async function startServer() {
    *       201:
    *         description: OK
    */
+  function validateProductData(p: any) {
+    if (!p.titulo || typeof p.titulo !== 'string' || p.titulo.trim() === '') {
+      return "El título es obligatorio y debe ser un texto válido.";
+    }
+    if (p.titulo.length > 150) {
+      return "El título no puede superar los 150 caracteres.";
+    }
+    if (p.precio === undefined || p.precio === null || isNaN(Number(p.precio))) {
+      return "El precio es obligatorio y debe ser un número.";
+    }
+    const pr = Number(p.precio);
+    if (pr <= 0) {
+      return "El precio debe ser un número positivo mayor que cero.";
+    }
+    if (pr > 99999.00) {
+      return "El precio ingresado supera el límite permitido de $99,999.00.";
+    }
+    if (p.cantidad === undefined || p.cantidad === null || isNaN(Number(p.cantidad))) {
+      return "La cantidad es obligatoria y debe ser un número entero.";
+    }
+    const q = Number(p.cantidad);
+    if (q < 0 || !Number.isInteger(q)) {
+      return "La cantidad debe ser un número entero no negativo (mayor o igual a 0).";
+    }
+    if (q > 100000) {
+      return "La cantidad ingresada supera el límite máximo de stock de 100,000 unidades.";
+    }
+    if (p.descripcion && p.descripcion.length > 1000) {
+      return "La descripción no puede superar los 1000 caracteres.";
+    }
+    if (p.ubicacion && p.ubicacion.length > 150) {
+      return "La ubicación no puede superar los 150 caracteres.";
+    }
+    return null;
+  }
+
   apiRouter.get("/productos", async (req, res) => { try { res.json(await service.productos.listar()); } catch (e: any) { res.status(500).json({ error: e.message }); } });
-  apiRouter.post("/productos", authRequired, async (req, res) => { try { const id = await service.productos.crear(req.body); res.status(201).json({ id }); } catch (e: any) { res.status(500).json({ error: e.message }); } });
+  apiRouter.post("/productos", authRequired, async (req, res) => {
+    try {
+      const errorMsg = validateProductData(req.body);
+      if (errorMsg) {
+        return res.status(400).json({ error: errorMsg });
+      }
+      const id = await service.productos.crear(req.body);
+      res.status(201).json({ id });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
 
   /**
    * @openapi
@@ -857,7 +927,18 @@ async function startServer() {
    *         description: OK
    */
   apiRouter.get("/productos/:id", async (req, res) => { try { res.json(await service.productos.obtener(Number(req.params.id))); } catch (e: any) { res.status(500).json({ error: e.message }); } });
-  apiRouter.put("/productos/:id", authRequired, async (req, res) => { try { await service.productos.actualizar(Number(req.params.id), req.body); res.json({ message: "OK" }); } catch (e: any) { res.status(500).json({ error: e.message }); } });
+  apiRouter.put("/productos/:id", authRequired, async (req, res) => {
+    try {
+      const errorMsg = validateProductData(req.body);
+      if (errorMsg) {
+        return res.status(400).json({ error: errorMsg });
+      }
+      await service.productos.actualizar(Number(req.params.id), req.body);
+      res.json({ message: "OK" });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
   apiRouter.delete("/productos/:id", authRequired, async (req, res) => { try { await service.productos.eliminar(Number(req.params.id)); res.json({ message: "OK" }); } catch (e: any) { res.status(500).json({ error: e.message }); } });
 
   apiRouter.get("/usuarios", authRequired, adminRequired, async (req, res) => { try { res.json(await service.usuarios.listar()); } catch (e: any) { res.status(500).json({ error: e.message }); } });

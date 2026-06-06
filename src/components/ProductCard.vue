@@ -24,10 +24,10 @@
       <!-- Availability Tag -->
       <div class="absolute top-4 right-4">
         <span 
-          v-if="product.estado === 'disponible'"
+          v-if="product.cantidad !== undefined && Number(product.cantidad) > 0"
           class="bg-green-600 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm"
         >
-          Disponible
+          (Stock: {{ product.cantidad }})
         </span>
         <span 
           v-else
@@ -56,13 +56,13 @@
         
         <button 
           v-if="store.user?.rol !== 'vendedor' && store.user?.rol !== 'admin'"
-          :disabled="product.estado === 'no disponible'"
-          @click.stop="product.estado === 'no disponible' ? null : $emit('add-to-cart', product)"
+          :disabled="!(product.cantidad !== undefined && Number(product.cantidad) > 0)"
+          @click.stop="!(product.cantidad !== undefined && Number(product.cantidad) > 0) ? null : $emit('add-to-cart', product)"
           class="w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-md"
-          :class="product.estado === 'no disponible' ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 cursor-not-allowed' : 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-blue-600 dark:hover:bg-blue-600 dark:hover:text-white hover:scale-110 active:scale-95 cursor-pointer'"
-          :title="product.estado === 'no disponible' ? 'Producto no disponible' : 'Añadir al carrito'"
+          :class="!(product.cantidad !== undefined && Number(product.cantidad) > 0) ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 cursor-not-allowed' : 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-blue-600 dark:hover:bg-blue-600 dark:hover:text-white hover:scale-110 active:scale-95 cursor-pointer'"
+          :title="!(product.cantidad !== undefined && Number(product.cantidad) > 0) ? 'Producto no disponible / Sin stock' : 'Añadir al carrito'"
         >
-          <Plus v-if="product.estado !== 'no disponible'" :size="18" stroke-width="3" />
+          <Plus v-if="product.cantidad !== undefined && Number(product.cantidad) > 0" :size="18" stroke-width="3" />
           <span v-else class="text-xs font-bold leading-none select-none">&#128683;</span>
         </button>
       </div>

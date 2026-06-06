@@ -51,10 +51,10 @@
           <!-- Badges Overlay -->
           <div class="absolute top-6 left-6 pointer-events-none z-10 transition-all">
             <span 
-              :class="product.estado === 'disponible' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'"
+              :class="(product.cantidad !== undefined && Number(product.cantidad) > 0) ? 'bg-green-600 text-white' : 'bg-red-600 text-white'"
               class="backdrop-blur px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md"
             >
-              {{ product.estado }}
+              {{ (product.cantidad !== undefined && Number(product.cantidad) > 0) ? `Disponible (Stock: ${product.cantidad})` : 'No Disponible / Agotado' }}
             </span>
           </div>
 
@@ -114,7 +114,7 @@
            <!-- Add to Cart or Unavailable display -->
            <template v-if="store.user?.rol !== 'vendedor' && store.user?.rol !== 'admin'">
              <button 
-               v-if="product.estado === 'disponible'"
+               v-if="product.cantidad !== undefined && Number(product.cantidad) > 0"
                @click="addToCart"
                class="w-full bg-blue-600 dark:bg-blue-600 text-white dark:text-white py-5 rounded-2xl font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg flex items-center justify-center gap-3 cursor-pointer">
                <span class="text-xl leading-none font-bold">🛍️</span> Añadir al Carrito
