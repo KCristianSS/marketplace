@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:33065
--- Tiempo de generación: 12-05-2026 a las 05:11:22
+-- Tiempo de generación: 06-06-2026 a las 23:51:33
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -64,19 +64,30 @@ CREATE TABLE `compras` (
 --
 
 INSERT INTO `compras` (`id`, `producto_id`, `comprador_id`, `vendedor_id`, `precio`, `estado`, `fecha_compra`) VALUES
-(1, 1, 3, 1, 599.00, 'pendiente', '2026-05-09 00:04:35'),
-(2, 2, 3, 1, 25.50, 'pendiente', '2026-05-09 00:04:35'),
-(3, 3, 3, 1, 89.90, 'pendiente', '2026-05-09 00:14:36'),
-(4, 3, 3, 1, 89.90, 'pendiente', '2026-05-09 00:14:36'),
-(5, 3, 4, 1, 89.90, 'pendiente', '2026-05-09 00:17:48'),
-(6, 1, 3, 1, 599.00, 'pendiente', '2026-05-09 00:32:25'),
+(1, 1, 3, 4, 599.00, 'pendiente', '2026-05-09 00:04:35'),
+(2, 2, 5, 4, 25.50, 'pendiente', '2026-05-09 00:04:35'),
+(3, 3, 5, 4, 89.90, 'pendiente', '2026-05-09 00:14:36'),
+(4, 3, 3, 4, 89.90, 'pendiente', '2026-05-09 00:14:36'),
+(5, 3, 3, 4, 89.90, 'pendiente', '2026-05-09 00:17:48'),
+(6, 1, 3, 2, 599.00, 'pendiente', '2026-05-09 00:32:25'),
 (7, 4, 3, 4, 10.00, 'pendiente', '2026-05-09 00:32:25'),
-(8, 1, 3, 1, 599.00, 'pendiente', '2026-05-09 01:17:41'),
-(9, 1, 3, 1, 599.00, 'pendiente', '2026-05-09 01:17:41'),
-(10, 2, 3, 1, 25.50, 'pendiente', '2026-05-09 01:17:41'),
-(11, 2, 3, 1, 25.50, 'pendiente', '2026-05-09 01:19:35'),
-(12, 2, 3, 1, 25.50, 'pendiente', '2026-05-09 01:19:35'),
-(13, 2, 3, 1, 25.50, 'pendiente', '2026-05-09 01:19:35');
+(8, 1, 3, 4, 599.00, 'pendiente', '2026-05-09 01:17:41'),
+(9, 1, 5, 2, 599.00, 'pendiente', '2026-05-09 01:17:41'),
+(10, 2, 3, 4, 25.50, 'pendiente', '2026-05-09 01:17:41'),
+(11, 2, 3, 4, 25.50, 'entregado', '2026-05-09 01:19:35'),
+(12, 2, 3, 4, 25.50, 'no entregado', '2026-05-09 01:19:35'),
+(13, 2, 3, 4, 25.50, 'completado', '2026-05-09 01:19:35'),
+(14, 4, 3, 4, 10.50, 'completado', '2026-05-15 02:36:13'),
+(15, 3, 3, 2, 89.90, 'pendiente', '2026-05-15 02:36:13'),
+(16, 1, 3, 2, 599.00, 'pendiente', '2026-05-21 05:35:13'),
+(17, 2, 3, 2, 25.50, 'pendiente', '2026-05-21 05:35:13'),
+(18, 2, 3, 2, 25.50, 'pendiente', '2026-05-21 05:35:13'),
+(19, 4, 3, 4, 10.50, 'completado', '2026-05-21 03:05:55'),
+(20, 4, 3, 4, 10.50, 'pendiente', '2026-05-21 03:21:44'),
+(21, 4, 3, 4, 10.50, 'no entregado', '2026-05-26 14:49:35'),
+(22, 3, 3, 2, 89.90, 'pendiente', '2026-05-26 14:49:35'),
+(23, 4, 3, 4, 10.50, 'pendiente', '2026-05-26 14:49:35'),
+(24, 5, 3, 4, 99999999.99, 'pendiente', '2026-06-06 21:42:46');
 
 -- --------------------------------------------------------
 
@@ -89,6 +100,14 @@ CREATE TABLE `imagenes_producto` (
   `producto_id` int(11) NOT NULL,
   `url` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `imagenes_producto`
+--
+
+INSERT INTO `imagenes_producto` (`id`, `producto_id`, `url`) VALUES
+(8, 2, 'https://www.bfgcdn.com/1500_1500_90/216-6298/nike-pro-breathe-slim-fit-s-s-top-camiseta-de-running.jpg'),
+(10, 4, 'https://multimarcas.com.bo/storage/images/productos/252-0-1712076251.jpg');
 
 -- --------------------------------------------------------
 
@@ -103,7 +122,7 @@ CREATE TABLE `productos` (
   `precio` decimal(10,2) NOT NULL,
   `vendedor_id` int(11) NOT NULL,
   `categoria_id` int(11) NOT NULL,
-  `estado` varchar(20) DEFAULT 'disponible',
+  `cantidad` int(11) NOT NULL DEFAULT 0,
   `ubicacion` varchar(150) DEFAULT NULL,
   `img_url` text DEFAULT NULL,
   `fecha_publicacion` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -114,11 +133,12 @@ CREATE TABLE `productos` (
 -- Volcado de datos para la tabla `productos`
 --
 
-INSERT INTO `productos` (`id`, `titulo`, `descripcion`, `precio`, `vendedor_id`, `categoria_id`, `estado`, `ubicacion`, `img_url`, `fecha_publicacion`, `fecha_actualizacion`) VALUES
-(1, 'Smartphone Alpha G1', 'Potente procesador y cámara de 48MP.', 599.00, 1, 1, 'disponible', NULL, 'https://image.made-in-china.com/202f0j00OHReJTCKrZot/6-56-Inches-Cell-Phone-Android-12-Mobile-Phone-Uniwa-X19s-4G-Android-Global-Version-Smartphone.webp', '2026-05-08 23:58:34', '2026-05-09 00:08:49'),
-(2, 'Camiseta Pro Breath', 'Tela transpirable ideal para deportes intensos.', 25.50, 1, 2, 'disponible', NULL, 'https://fairplaybo.vtexassets.com/arquivos/ids/585182/779190-01.jpg?v=638797160337800000', '2026-05-08 23:58:34', '2026-05-09 00:13:39'),
-(3, 'Cafetera Express Home', 'Café perfecto en menos de 2 minutos.', 89.90, 1, 3, 'disponible', NULL, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbtr_q-iUUrHc_4Vqsq18NsYD_wh876be0WQ&s', '2026-05-08 23:58:34', '2026-05-09 00:14:17'),
-(4, 'Libro de fabulas', '12 cuentos', 10.50, 4, 5, 'disponible', 'Online', 'https://images.cdn2.buscalibre.com/fit-in/360x360/7e/b3/7eb3e5916d2fcd844888da213fe0ba40.jpg', '2026-05-09 00:30:48', '2026-05-09 01:22:09');
+INSERT INTO `productos` (`id`, `titulo`, `descripcion`, `precio`, `vendedor_id`, `categoria_id`, `cantidad`, `ubicacion`, `img_url`, `fecha_publicacion`, `fecha_actualizacion`) VALUES
+(1, 'Smartphone Alpha G1', 'Potente procesador y cámara de 48MP.', 599.00, 2, 1, 1, 'La Paz', 'https://image.made-in-china.com/202f0j00OHReJTCKrZot/6-56-Inches-Cell-Phone-Android-12-Mobile-Phone-Uniwa-X19s-4G-Android-Global-Version-Smartphone.webp', '2026-05-08 23:58:34', '2026-05-21 03:16:39'),
+(2, 'Camiseta Pro Breath', 'Tela transpirable ideal para deportes intensos.', 25.50, 2, 2, 1, 'Cochabamba', 'https://fairplaybo.vtexassets.com/arquivos/ids/585182/779190-01.jpg?v=638797160337800000', '2026-05-08 23:58:34', '2026-05-21 03:16:44'),
+(3, 'Cafetera Express Home', 'Café perfecto en menos de 2 minutos.', 89.90, 2, 3, 1, 'Sucre', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbtr_q-iUUrHc_4Vqsq18NsYD_wh876be0WQ&s', '2026-05-08 23:58:34', '2026-05-21 03:16:48'),
+(4, 'Libro de fabulas Esopo', '12 cuentos', 11.00, 4, 5, 0, 'Pando', 'https://images.cdn2.buscalibre.com/fit-in/360x360/7e/b3/7eb3e5916d2fcd844888da213fe0ba40.jpg', '2026-05-09 00:30:48', '2026-05-26 14:54:37'),
+(5, 'Cafetera', 'Cafetera 20A', 99.00, 4, 1, 10, 'Tarija', 'https://homeelements.vtexassets.com/arquivos/ids/157146/299898424_1.jpg?v=638730142606470000', '2026-05-26 14:57:31', '2026-06-06 21:43:44');
 
 -- --------------------------------------------------------
 
@@ -141,11 +161,13 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `nombre`, `correo`, `contrasena`, `telefono`, `rol`, `fecha_creacion`) VALUES
-(1, 'Admin Marketplace', 'admin@ejemplo.com', 'admin123', '555-0101', 'vendedor', '2026-05-08 23:58:34'),
-(2, 'Juan Comprador', 'juan@ejemplo.com', 'juan123', '555-0102', 'cliente', '2026-05-08 23:58:34'),
-(3, 'Kevin Sancalli', 'kevin@ejemplo.com', '$2b$10$D44Su3JONcn3ChgQva807eUzm2XduapDpCwZUiNdgyE8uPSJYI9aO', '44997766', 'cliente', '2026-05-09 00:04:07'),
+(1, 'Admin', 'admin@amazon.com', '$2b$10$0MWbvpOdN2.LlvZ8EWo6ve5I0Ys82D/Zr9bPexeAuAwBfNCC/Sxmq', '555-0101', 'admin', '2026-05-08 23:58:34'),
+(2, 'Juan Velazco', 'juan@ejemplo.com', '$2b$10$0MWbvpOdN2.LlvZ8EWo6ve5I0Ys82D/Zr9bPexeAuAwBfNCC/Sxmq', '555-0102', 'vendedor', '2026-05-08 23:58:34'),
+(3, 'Kevin Sancalli', 'kevin@ejemplo.com', '$2b$10$0MWbvpOdN2.LlvZ8EWo6ve5I0Ys82D/Zr9bPexeAuAwBfNCC/Sxmq', '44997766', 'cliente', '2026-05-09 00:04:07'),
 (4, 'Marco Conde', 'marco@ejemplo.com', '$2b$10$tUxO7kcnu8ytPiBeGwSA4e80hs29EtsceFuaYw7.a.BI3S./His5m', '77996622', 'vendedor', '2026-05-09 00:15:43'),
-(5, 'Juan Perez', 'juan1@ejemplo.com', '$2b$10$OKT1uqF7WdWxwI6BCRTEAORGncPItSNX5kfvn/2wL/4ADErIsbKjO', '99445566', 'cliente', '2026-05-09 00:26:15');
+(5, 'Juan Perez', 'juan1@ejemplo.com', '$2b$10$OKT1uqF7WdWxwI6BCRTEAORGncPItSNX5kfvn/2wL/4ADErIsbKjO', '99445566', 'cliente', '2026-05-09 00:26:15'),
+(6, 'Pablo Aliaga', 'pablo@ejemplo.com', '$2b$10$Q5yLDQjMAGPPlJf0DAZx.uud0EUqNzn3FQAPGUltBAy6DeMHnDI6K', '77559133', 'cliente', '2026-05-20 21:19:46'),
+(7, 'Rosa Luna', 'rosa@ejemplo.com', '$2b$10$0MWbvpOdN2.LlvZ8EWo6ve5I0Ys82D/Zr9bPexeAuAwBfNCC/Sxmq', '12345678', 'cliente', '2026-05-20 21:35:11');
 
 -- --------------------------------------------------------
 
@@ -227,25 +249,25 @@ ALTER TABLE `categorias`
 -- AUTO_INCREMENT de la tabla `compras`
 --
 ALTER TABLE `compras`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT de la tabla `imagenes_producto`
 --
 ALTER TABLE `imagenes_producto`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Restricciones para tablas volcadas

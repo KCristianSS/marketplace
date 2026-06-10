@@ -180,9 +180,12 @@ const handleCheckout = async () => {
     });
 
     await Promise.all(promises);
-    alert("¡Pedido finalizado con éxito! Los datos se han guardado en la base de datos.");
+    alert("¡Pedido finalizado con éxito! El stock se ha actualizado correctamente.");
     store.cart = [];
     isCartOpen.value = false;
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   } catch (e: any) {
     console.error("Error detallado de la compra:", e);
     const mensajeError = e.response?.data?.error || e.message || "Error desconocido";
